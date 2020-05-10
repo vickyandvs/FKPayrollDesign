@@ -10,6 +10,25 @@ import java.util.*;
 
     class Admin{  
 
+    	static Connection con;
+    	static String mySqlDriverName="com.mysql.cj.jdbc.Driver";
+    	static String user="root";
+    	static String password="password";
+    	static String url="jdbc:mysql://localhost:3306/FKpayroll";
+
+
+    	public static void connectToDatabase(){
+    		try{
+    			Class.forName(mySqlDriverName);  
+			  	con=DriverManager.getConnection(  
+			    url,user,password);  
+			    System.out.println("Connection Established");
+    		}
+    		catch(Exception e){ System.out.println(e);} 
+
+
+    	}
+
     	public static String addEmployee(){
     		AddEmployee obj=new AddEmployee();
     		return obj.queryGenerator();
@@ -25,13 +44,70 @@ import java.util.*;
     		return obj.queryGenerator();
     	}
 
+    	public static void updateEmployee(int employeeID,String attribute,String value,boolean singleQuotes){
+    		try{
+	    		String query="update Employee set "+attribute+"=";
+	    		if(singleQuotes){
+	    			query=query+"'"+value+"'"+" where id ="+employeeID; 			
+
+	    		}
+	    		else
+	    		{
+	    			query=query+value+" where id ="+employeeID; 			
+
+	    		}
+	    		
+	    		Statement stmt=con.createStatement();
+	    		int query_status=stmt.executeUpdate(query);
+	    		System.out.println("Employee "+employeeID+" "+attribute+" value is "+value);
+    		}
+    		catch(Exception e){ System.out.println(e);}  
+
+
+
+
+
+
+
+    	}
+
+    	public static double hourEmployeeSalary(int employeeID,double hourRate,String lastPaid,String now){
+    		double salary=-1;
+    		try{
+
+	    		Statement stmt1=con.createStatement();
+	    		String query1="select hours from DailyWork where empID="+employeeID+" and time between '"+lastPaid+"' and '"+now+"'";
+
+				ResultSet rs1=stmt1.executeQuery(query1);
+
+				ArrayList<Double> hours=new ArrayList<Double>();
+				    				    	
+		    	while(rs1.next()){
+
+			   		hours.add(rs1.getDouble(1));
+			    	
+			 	}
+
+				HourEmployee emp=new HourEmployee();
+				emp.rate=hourRate;  	
+				java.sql.Date nowDate=java.sql.Date.valueOf(now);
+				java.sql.Date lastPaidDate=java.sql.Date.valueOf(lastPaid);
+				emp.lastPaid=lastPaidDate;
+	    	   	salary=emp.calculateSalary(nowDate,hours);
+	    	   	if(emp.lastPaid.equals(lastPaidDate))return salary;
+	    	   	String attribute="lastPaidDate";
+	    	   	updateEmployee(employeeID,attribute,now,true);
+	    	   	
+    		}
+    		catch(Exception e){ System.out.println(e);}  
+    		return salary;
+
+    	}
 
 	    public static void main(String args[]){  
-			    try{  
-			    Class.forName("com.mysql.cj.jdbc.Driver");  
-			    Connection con=DriverManager.getConnection(  
-			    "jdbc:mysql://localhost:3306/FKpayroll","root","password");  
-			    System.out.println("Connection Established");
+			try{  
+
+			    connectToDatabase();			    
 			    Statement stmt=con.createStatement();
 			  	Scanner sc= new Scanner(System.in);
 			    int f=1;
@@ -42,7 +118,8 @@ import java.util.*;
 			    	System.out.println("Enter 1 to add employee :\n");
 			    	System.out.println("Enter 2 to delete employee:\n");
 			    	System.out.println("Enter 3 to post a time card:\n");
-			    	System.out.println("Enter 4 to post sale receipy:\n");
+			    	System.out.println("Enter 4 to post sale receipt:\n");
+			    	System.out.println("Enter 5 to pay Employees:\n");
 			    	int option=sc.nextInt();
 			    	sc.nextLine();
 			    	switch(option){
@@ -74,6 +151,46 @@ import java.util.*;
 			    			break;
 
 			    		} 
+
+			    		case 5:{
+
+			    			System.out.println("Enter date upto which to generate payment in format YYYY-MM-DD:");
+			    			String now=sc.nextLine();
+			    			String query="select * from Employee";
+			    			ResultSet rs=stmt.executeQuery(query);
+			    			while(rs.next()){
+			    				int typeOfEmployee=rs.getInt(8);
+			    				int employeeID=rs.getInt(10);
+			    				String lastPaid=rs.getString(5);
+			    				double rate=rs.getDouble(4);
+			    				int modeOfSalary=rs.getInt(3);
+			    				String postalAdd=rs.getString(12);
+			    				String accountNo=rs.getString(13);
+			    				double salary=-1;
+			    				if(typeOfEmployee==1)
+			    				{
+			    					salary=hourEmployeeSalary(employeeID,rate,lastPaid,now);
+			    				}
+			    				else
+			    				{
+
+			    					continue;
+			    				}
+			    				if(salary>0){
+			    					if(modeOfSalary==1)System.out.println("\nEmployee "+employeeID+" pick salary of amount "+salary);
+			    					else if(modeOfSalary==2)System.out.println("\nEmployee "+employeeID+" salary of amount "+salary+" posted to "+postalAdd);
+			    					else System.out.println("\nEmployee "+employeeID+"salary of amount "+salary+"added to account "+accountNo);
+			    				}
+
+
+			    			}
+
+			    			break;
+
+
+
+			    		}
+
 
 			    		default:{
 			    			System.out.println("\n|| CLOSING FLIPKART PAYROLL APPLICATION ||\n");
