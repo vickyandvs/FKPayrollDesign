@@ -1,7 +1,7 @@
 
 import java.util.*;
 
-class HourEmployee implements Employee{
+class SalariedEmployee implements Employee{
 	String name;
 	int id;
 	String address;
@@ -16,11 +16,20 @@ class HourEmployee implements Employee{
 
 
 	private boolean isLastDay(Date now) {
-	    Date test = new Date(now.getTime()),
-	        Month month = test.getMonth();
+	    
 
-	    test.setDate(test.getDate() + 1);
-	    return test.getMonth() !== month;
+        Calendar calendar = Calendar.getInstance();  
+        calendar.setTime(now);  
+
+        calendar.add(Calendar.MONTH, 1);  
+        calendar.set(Calendar.DAY_OF_MONTH, 1);  
+        calendar.add(Calendar.DATE, -1);  
+
+        Date lastDayOfMonth = calendar.getTime();
+        //System.out.println("\n last date of month: "+lastDayOfMonth+"\n");
+        if(now.equals(lastDayOfMonth))return true;
+        return false; 
+
 	}
 
 
@@ -31,7 +40,7 @@ class HourEmployee implements Employee{
 		double comm=0;
 		for(Double bon:bonus)
 		{
-			comm+=bon;
+			comm+=(bon*rate)/100;
 		}
 		return comm;
 	}
@@ -49,7 +58,7 @@ class HourEmployee implements Employee{
 		c.setTime(now);
 		int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
 
-		if(diffDays>=14&&DAY_OF_WEEK==6)
+		if(diffDays>=14&&dayOfWeek==6)
 		{
 			payment+=calculateCommission(bonus);
 			
@@ -57,7 +66,7 @@ class HourEmployee implements Employee{
 			lastComm=now;
 		}
 
-		if(isLastDay)
+		if(isLastDay(now))
 		{
 
 			payment+=salary;

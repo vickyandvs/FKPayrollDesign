@@ -104,6 +104,71 @@ import java.util.*;
 
     	}
 
+    	public static double salariedEmployeeSalary(int employeeID,double commissionRate,double employeeSalary,String lastPaid,String lastComm,String now){
+
+
+    		double salary=-1;
+    		try{
+
+	    		Statement stmt1=con.createStatement();
+	    		String query1="select amount from Commission where empID="+employeeID+" and time between '"+lastComm+"' and '"+now+"'";
+
+				ResultSet rs1=stmt1.executeQuery(query1);
+
+				ArrayList<Double> sales=new ArrayList<Double>();
+				    				    	
+		    	while(rs1.next()){
+
+			   		sales.add(rs1.getDouble(1));
+			    	
+			 	}
+
+				SalariedEmployee emp=new SalariedEmployee();
+				emp.rate=commissionRate;  	
+				java.sql.Date nowDate=java.sql.Date.valueOf(now);
+				java.sql.Date lastPaidDate=java.sql.Date.valueOf(lastPaid);
+				java.sql.Date lastCommDate=java.sql.Date.valueOf(lastComm);
+				emp.lastPaid=lastPaidDate;
+				emp.lastComm=lastCommDate;
+	    	   	salary=emp.calculateSalary(nowDate,sales);
+	    	   	String attribute;
+	    	   	if(emp.lastPaid.equals(lastPaidDate)==false){
+	    	   		attribute="lastPaidDate";
+	    	   		updateEmployee(employeeID,attribute,now,true);
+	    	   	}
+	    	   	if(emp.lastComm.equals(lastCommDate)==false){
+	    	   		attribute="lastComm";
+	    	   		updateEmployee(employeeID,attribute,now,true);
+	    	   	}
+
+	    	   	
+	    	   	
+	    	   	
+    		}
+    		catch(Exception e){ System.out.println(e);}  
+    		return salary;
+
+
+
+
+
+
+
+
+
+
+
+    	}
+
+
+
+
+
+
+
+
+
+
 	    public static void main(String args[]){  
 			try{  
 
@@ -166,6 +231,8 @@ import java.util.*;
 			    				int modeOfSalary=rs.getInt(3);
 			    				String postalAdd=rs.getString(12);
 			    				String accountNo=rs.getString(13);
+			    				double employeeSalary=rs.getDouble(9);
+			    				String lastComm=rs.getString(11);
 			    				double salary=-1;
 			    				if(typeOfEmployee==1)
 			    				{
@@ -173,13 +240,13 @@ import java.util.*;
 			    				}
 			    				else
 			    				{
-
-			    					continue;
+			    					salary=salariedEmployeeSalary(employeeID,rate,salary,lastPaid,lastComm,now);
+			    					
 			    				}
 			    				if(salary>0){
-			    					if(modeOfSalary==1)System.out.println("\nEmployee "+employeeID+" pick salary of amount "+salary);
-			    					else if(modeOfSalary==2)System.out.println("\nEmployee "+employeeID+" salary of amount "+salary+" posted to "+postalAdd);
-			    					else System.out.println("\nEmployee "+employeeID+"salary of amount "+salary+"added to account "+accountNo);
+			    					if(modeOfSalary==1)System.out.println("\nEmployee "+employeeID+" pick salary of amount "+salary+"\n");
+			    					else if(modeOfSalary==2)System.out.println("\nEmployee "+employeeID+" salary of amount "+salary+" posted to "+postalAdd+"\n");
+			    					else System.out.println("\nEmployee "+employeeID+" salary of amount "+salary+" added to account "+accountNo+"\n");
 			    				}
 
 
