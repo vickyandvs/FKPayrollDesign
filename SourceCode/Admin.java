@@ -9,6 +9,20 @@ import java.util.*;
     import java.sql.*;  
 
     class Admin{  
+
+
+
+
+
+
+    	public static String addEmployee(){
+    		AddEmployee obj=new AddEmployee();
+    		return obj.queryGenerator();
+
+
+    	}
+
+
 	    public static void main(String args[]){  
 			    try{  
 			    Class.forName("com.mysql.cj.jdbc.Driver");  
@@ -16,52 +30,27 @@ import java.util.*;
 			    "jdbc:mysql://localhost:3306/FKpayroll","root","password");  
 			    System.out.println("Connection Established");
 			    
-				String query = "select * from Employee";
+				
 
 			    Statement stmt=con.createStatement();
 
-			    ResultSet rs=stmt.executeQuery(query);
+
+			    String query=addEmployee();
+
+			    int query_status=stmt.executeUpdate(query);
+
+			    ResultSet rs;
 			    
-			    String now="2020-05-10";
-			    while(rs.next())
-			    {
-			    	java.sql.Date l=rs.getDate(5);
-			    	String lastPaid=Objects.toString(l);
-			    	//System.out.println(lastPaid);
-			    	if(Objects.isNull(l))continue;
-			    	int empID=rs.getInt(10);
-			    	HourEmployee emp=new HourEmployee();
-			    	emp.rate=rs.getDouble(4);
-			    	//System.out.println(lastPaid+now);
-
-			    	// now is the input date
-
-			    	Statement stmt2=con.createStatement();
-
-			    	String query2="select hours from DailyWork where empID="+empID+" and time between '"+lastPaid+"' and '"+now+"'";
-
-			    	ResultSet rs2=stmt2.executeQuery(query2);
-
-			    	ArrayList<Double> hours=new ArrayList<Double>();
-			    				    	
-			    	while(rs2.next()){
-
-			    		hours.add(rs2.getDouble(1));
-			    		
-			    		System.out.println(rs2.getDouble(1));
-			    	   	}
-
-			    	   	
-			    	   	double salary=emp.calculateSalary(l,hours);
-			    	   	if(salary>0){
-			    	   		updateLastDate(rs2.getInt(10),n);
-			    	   			System.out.println(salary);
-			    	   	}
-			    	   
-
+			    query="select max(id) from Employee";
+			    rs=stmt.executeQuery(query);
+			    if(rs.next()){
+			    	int newID=rs.getInt(1);
+			    	System.out.println("Employee added with id : "+newID);
 
 
 			    }
+			    
+			    
 
 			      
 
